@@ -1,16 +1,16 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'Firebase/firebase_options.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _LoginPageState extends State<LoginPage> {
   late final TextEditingController _email;
   late final TextEditingController _password;
   String? userEmail;
@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         toolbarHeight: 40,
-        title: Text('Account', style: TextStyle(color: Colors.white)),
+        title: Text('Login', style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
       body: Center(
@@ -81,25 +81,35 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(height: 20),
                     TextButton(
                       onPressed: () async {
-                        try {
                           final email = _email.text;
                           final password = _password.text;
-                          final userCredential = await FirebaseAuth.instance
-                              .createUserWithEmailAndPassword(
+                          try {
+                            final userCredential = await FirebaseAuth.instance
+                              .signInWithEmailAndPassword(
                                 email: email,
                                 password: password,
                               );
                           setState(() {
                             userEmail = userCredential.user?.email;
                           });
-                        } catch (e) {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                        } on FirebaseAuthException catch (e) {
+                          if (e.code == 'User-not-found') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('User not found, maybe you entered a wrong email'),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: ${e.code}'),
+                              ),
+                            );
+                          }
                         }
                       },
                       child: Text(
-                        'Sign Up',
+                        'Login',
                         style: TextStyle(color: Colors.black),
                       ),
                       style: TextButton.styleFrom(
@@ -114,7 +124,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(height: 20),
                     if (userEmail != null)
                       Text(
-                        'Signed in as: $userEmail',
+                        'Logged in as: $userEmail',
                         style: TextStyle(color: Colors.white),
                       ),
                   ],

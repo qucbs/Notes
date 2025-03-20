@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'Homepage.dart';
+import 'package:notes/Loginpage.dart';
+import 'Registerpage.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const HomePage(),
+      home: const LoginPage(),
       debugShowCheckedModeBanner: false,
     );
   }
