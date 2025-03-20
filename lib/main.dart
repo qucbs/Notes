@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notes/EmailView.dart';
 import 'package:notes/Loginpage.dart';
 import 'Registerpage.dart';
 
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const LoginPage(),
+      home: const RegisterPage(),
       debugShowCheckedModeBanner: false,
     );
   }

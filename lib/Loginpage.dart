@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:notes/EmailView.dart';
+import 'package:notes/Registerpage.dart';
+import 'package:notes/homepage.dart';
 import 'Firebase/firebase_options.dart';
 
 class LoginPage extends StatefulWidget {
@@ -81,29 +84,47 @@ class _LoginPageState extends State<LoginPage> {
                     SizedBox(height: 20),
                     TextButton(
                       onPressed: () async {
-                          final email = _email.text;
-                          final password = _password.text;
-                          try {
-                            final userCredential = await FirebaseAuth.instance
+                        final email = _email.text;
+                        final password = _password.text;
+                        try {
+                          await FirebaseAuth.instance
                               .signInWithEmailAndPassword(
                                 email: email,
                                 password: password,
                               );
-                          setState(() {
-                            userEmail = userCredential.user?.email;
-                          });
+
+                          final user = FirebaseAuth.instance.currentUser;
+                          if (user?.emailVerified ?? false) {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => const Homepage(),
+                              ),
+                            );
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const VerifyEmailView(),
+                              ),
+                            );
+                          }
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Successfully logged in as $email'),
+                            ),
+                          );
                         } on FirebaseAuthException catch (e) {
                           if (e.code == 'User-not-found') {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('User not found, maybe you entered a wrong email'),
+                                content: Text(
+                                  'User not found, maybe you entered a wrong email',
+                                ),
                               ),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error: ${e.code}'),
-                              ),
+                              SnackBar(content: Text('Error: ${e.code}')),
                             );
                           }
                         }
@@ -122,11 +143,21 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    if (userEmail != null)
-                      Text(
-                        'Logged in as: $userEmail',
+                    // text button to redirect users to the register page
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterPage(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Dont have an account?',
                         style: TextStyle(color: Colors.white),
                       ),
+                      
+                    ),
                   ],
                 ),
               );
@@ -138,3 +169,5 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+

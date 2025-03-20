@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:notes/EmailView.dart';
+import 'package:notes/Loginpage.dart';
 import 'Firebase/firebase_options.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -36,7 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         toolbarHeight: 40,
-        title: Text('Account', style: TextStyle(color: Colors.white)),
+        title: Text('Sign Up', style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
       body: Center(
@@ -92,10 +94,33 @@ class _RegisterPageState extends State<RegisterPage> {
                           setState(() {
                             userEmail = userCredential.user?.email;
                           });
-                        } catch (e) {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                          if (userEmail != null) {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => VerifyEmailView(),
+                            ));
+                          }
+                        } on FirebaseAuthException catch (e) {
+                          if (e.code == 'weak-password') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('The password is too weak'),
+                              ),
+                            );
+                          } else if (e.code == 'invalid-email') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('The email is invalid')),
+                            );
+                          } else if (e.code == 'email-already-in-use') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('The email is already in use'),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
                         }
                       },
                       child: Text(
@@ -112,11 +137,12 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    if (userEmail != null)
-                      Text(
-                        'Signed in as: $userEmail',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginPage()));
+                      },
+                      child: Text('Already have an account?' , style: TextStyle(color: Colors.white)),
+                    ),
                   ],
                 ),
               );
@@ -128,3 +154,4 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
+
