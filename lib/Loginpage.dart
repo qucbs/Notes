@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:notes/EmailView.dart';
 import 'package:notes/Registerpage.dart';
 import 'package:notes/homepage.dart';
+import 'package:notes/routes.dart';
+import 'package:notes/showError.dart';
 import 'Firebase/firebase_options.dart';
 
 class LoginPage extends StatefulWidget {
@@ -95,16 +97,13 @@ class _LoginPageState extends State<LoginPage> {
 
                           final user = FirebaseAuth.instance.currentUser;
                           if (user?.emailVerified ?? false) {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => const Homepage(),
-                              ),
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              homeRoute,
+                              (context) => false,
                             );
                           } else {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const VerifyEmailView(),
-                              ),
+                            Navigator.of(context).pushNamed(
+                              verifyEmailRoute,
                             );
                           }
 
@@ -115,18 +114,20 @@ class _LoginPageState extends State<LoginPage> {
                           );
                         } on FirebaseAuthException catch (e) {
                           if (e.code == 'User-not-found') {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'User not found, maybe you entered a wrong email',
-                                ),
-                              ),
+                            showErrorDialog(
+                              context,
+                              'User not found, maybe you entered a wrong email',
+                            );
+                          } else if (e.code == 'invalid-credential') {
+                            showErrorDialog(
+                              context,
+                              'Invalid credentials, please try again',
                             );
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: ${e.code}')),
-                            );
+                            showErrorDialog(context, 'Error: ${e.code}');
                           }
+                        } catch (e) {
+                          await showErrorDialog(context, 'Error: $e');
                         }
                       },
                       child: Text(
@@ -146,17 +147,15 @@ class _LoginPageState extends State<LoginPage> {
                     // text button to redirect users to the register page
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const RegisterPage(),
-                          ),
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          registerRoute,
+                          (context) => false,
                         );
                       },
                       child: Text(
                         'Dont have an account?',
                         style: TextStyle(color: Colors.white),
                       ),
-                      
                     ),
                   ],
                 ),

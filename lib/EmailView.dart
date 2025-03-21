@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notes/homepage.dart';
+import 'package:notes/routes.dart';
 
 class VerifyEmailView extends StatefulWidget {
   const VerifyEmailView({super.key});
@@ -10,6 +11,38 @@ class VerifyEmailView extends StatefulWidget {
 }
 
 class _VerifyEmailViewState extends State<VerifyEmailView> {
+
+  Future<void> _checkEmailVerified() async {
+    bool isVerified = false;
+
+    while (!isVerified) {
+      final user = FirebaseAuth.instance.currentUser;
+      await user?.reload();
+      isVerified = user?.emailVerified ?? false;
+
+      if (isVerified) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Email verified successfully!'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        // Navigate to HomePage
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(
+          homeRoute,
+          (context) => false,
+        );
+        break; // Exit the loop once verified
+      }
+
+      // Wait for 3 seconds before checking again
+      await Future.delayed(Duration(seconds: 3));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,24 +75,9 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                     ),
                   ),
                 );
-                // Periodically check if the user is verified
-                bool isVerified = false;
-                while (!isVerified) {
-                  await Future.delayed(Duration(seconds: 3));
-                  await user?.reload(); // Refresh user data
-                  isVerified = user?.emailVerified ?? false;
-                }
 
-                // Show success message after verification
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Email verified successfully!'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-
-                // Navigate to HomePage
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => Homepage()));
+                // Call the check method
+                await _checkEmailVerified();
               },
 
               child: Padding(
