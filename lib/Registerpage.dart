@@ -1,11 +1,8 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:notes/EmailView.dart';
-import 'package:notes/Loginpage.dart';
+import 'package:notes/Services/Auth/authExceptions.dart';
+import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/routes.dart';
 import 'package:notes/showError.dart';
-import 'Firebase/firebase_options.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -36,18 +33,16 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color.fromRGBO(29, 29, 29, 1),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Color.fromRGBO(29, 29, 29, 1),
         toolbarHeight: 40,
         title: Text('Sign Up', style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
       body: Center(
         child: FutureBuilder(
-          future: Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform,
-          ),
+            future: AuthService.firebase().initialize(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return Padding(
@@ -88,40 +83,40 @@ class _RegisterPageState extends State<RegisterPage> {
                         try {
                           final email = _email.text;
                           final password = _password.text;
-                          final userCredential = await FirebaseAuth.instance
-                              .createUserWithEmailAndPassword(
-                                email: email,
-                                password: password,
-                              );
+                           await AuthService.firebase().createUser(email: email, password: password);
                           setState(() {
-                            userEmail = userCredential.user?.email;
+                            userEmail = AuthService.firebase().user?.email;
                           });
                           if (userEmail != null) {
                             Navigator.of(context).pushNamed(verifyEmailRoute);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('You did not provide an email'),
+                              ),
+                            );
                           }
-                        } on FirebaseAuthException catch (e) {
-                          if (e.code == 'weak-password') {
-                            await showErrorDialog(
-                              context,
+                          } on WeakPasswordAuthException {
+                          await showErrorDialog(
+                            context,
                               'The password is too weak',
                             );
-                          } else if (e.code == 'invalid-email') {
+                          } on InvalidEmailAuthException {
                             await showErrorDialog(
                               context,
                               'The email is invalid',
                             );
-                          } else if (e.code == 'email-already-in-use') {
+                          } on EmailAlreadyInUseAuthException {
                             await showErrorDialog(
                               context,
                               'The email is already in use',
                             );
-                          } else {
-                            await showErrorDialog(context, 'Error: $e');
+                          } on GenericAuthException catch (e) {
+                            await showErrorDialog(
+                              context,
+                              'Error: ${e.toString()}',
+                            );
                           }
-                        }
-                        catch (e) {
-                          await showErrorDialog(context, 'Error: $e');
-                        }
                       },
                       child: Text(
                         'Sign Up',

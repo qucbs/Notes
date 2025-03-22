@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:notes/Firebase/firebase_options.dart';
 import 'package:notes/Services/Auth/auth_provider.dart';
 import 'package:notes/Services/Auth/auth_user.dart';
 import 'package:notes/Services/Auth/authExceptions.dart';
@@ -31,10 +33,10 @@ class FirebaseAuthProvider implements AuthProvider {
       } else if (e.code == 'email-already-in-use') {
         throw EmailAlreadyInUseAuthException();
       } else {
-        throw GenericAuthException();
+        throw GenericAuthException(e.toString());
       }
-    } catch (_) {
-      throw GenericAuthException();
+    } catch (e) {
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -65,12 +67,12 @@ class FirebaseAuthProvider implements AuthProvider {
       if (e.code == 'User-not-found') {
         throw UserNotFoundAuthException();
       } else if (e.code == 'invalid-credential') {
-        throw WrongPasswordAuthException();
+        throw InvalidCredentialsAuthException();
       } else {
-        throw GenericAuthException();
+        throw GenericAuthException(e.toString());
       }
-    } catch (_) {
-      throw GenericAuthException();
+    } catch (e) {
+      throw GenericAuthException(e.toString());
     }
   }
 
@@ -92,5 +94,12 @@ class FirebaseAuthProvider implements AuthProvider {
     } else {
       throw UserNotLoggedInAuthException();
     }
+  }
+  
+  @override
+  Future<void> initialize() async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   }
 }

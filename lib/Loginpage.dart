@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:notes/EmailView.dart';
-import 'package:notes/Registerpage.dart';
-import 'package:notes/homepage.dart';
+import 'package:notes/Services/Auth/authExceptions.dart';
+import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/routes.dart';
 import 'package:notes/showError.dart';
-import 'Firebase/firebase_options.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -37,18 +33,16 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color.fromRGBO(29, 29, 29, 1),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Color.fromRGBO(29, 29, 29, 1),
         toolbarHeight: 40,
         title: Text('Login', style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
       body: Center(
         child: FutureBuilder(
-          future: Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform,
-          ),
+          future: AuthService.firebase().initialize(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return Padding(
@@ -89,22 +83,19 @@ class _LoginPageState extends State<LoginPage> {
                         final email = _email.text;
                         final password = _password.text;
                         try {
-                          await FirebaseAuth.instance
-                              .signInWithEmailAndPassword(
-                                email: email,
-                                password: password,
-                              );
+                          await AuthService.firebase().logIn(
+                            email: email,
+                            password: password,
+                          );
 
-                          final user = FirebaseAuth.instance.currentUser;
-                          if (user?.emailVerified ?? false) {
+                          final user = AuthService.firebase().currentUser;
+                          if (user?.isEmailVerified ?? false) {
                             Navigator.of(context).pushNamedAndRemoveUntil(
                               homeRoute,
                               (context) => false,
                             );
                           } else {
-                            Navigator.of(context).pushNamed(
-                              verifyEmailRoute,
-                            );
+                            Navigator.of(context).pushNamed(verifyEmailRoute);
                           }
 
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -112,22 +103,21 @@ class _LoginPageState extends State<LoginPage> {
                               content: Text('Successfully logged in as $email'),
                             ),
                           );
-                        } on FirebaseAuthException catch (e) {
-                          if (e.code == 'User-not-found') {
-                            showErrorDialog(
-                              context,
-                              'User not found, maybe you entered a wrong email',
-                            );
-                          } else if (e.code == 'invalid-credential') {
-                            showErrorDialog(
-                              context,
-                              'Invalid credentials, please try again',
-                            );
-                          } else {
-                            showErrorDialog(context, 'Error: ${e.code}');
-                          }
-                        } catch (e) {
-                          await showErrorDialog(context, 'Error: $e');
+                        } on UserNotFoundAuthException {
+                          await showErrorDialog(
+                            context,
+                            'User not found, maybe you entered a wrong email',
+                          );
+                        } on InvalidCredentialsAuthException {
+                          await showErrorDialog(
+                            context,
+                            'Invalid credentials, please try again',
+                          );
+                        } on GenericAuthException catch (e) {
+                          await showErrorDialog(
+                            context,
+                            'Error: ${e.message}',
+                          );
                         }
                       },
                       child: Text(
@@ -168,5 +158,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-

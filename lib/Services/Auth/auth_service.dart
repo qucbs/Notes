@@ -1,9 +1,24 @@
+
 import 'package:notes/Services/Auth/auth_provider.dart';
 import 'package:notes/Services/Auth/auth_user.dart';
+import 'package:notes/Services/Auth/firebase_auth_provider.dart';
 
 class AuthService implements AuthProvider {
   final AuthProvider provider;
   const AuthService({required this.provider});
+
+  factory AuthService.firebase() => AuthService(provider: FirebaseAuthProvider());
+
+
+// I also want a user getter in this class that returns the current user
+// I also want a email getter in this class that returns the current user's email
+  AuthUser? get user {
+    return provider.currentUser;
+  }
+
+  String? get email {
+    return user?.email;
+  }
 
   @override
   Future<AuthUser> createUser({
@@ -32,4 +47,11 @@ class AuthService implements AuthProvider {
   Future<void> sendEmailVerification() {
     return provider.sendEmailVerification();
   }
+  
+  @override
+  Future<void> initialize() async {
+    await provider.initialize();
+  }
+  
+
 }

@@ -1,6 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:notes/homepage.dart';
+import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/routes.dart';
 
 class VerifyEmailView extends StatefulWidget {
@@ -16,9 +15,9 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
     bool isVerified = false;
 
     while (!isVerified) {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = AuthService.firebase().user;
       await user?.reload();
-      isVerified = user?.emailVerified ?? false;
+      isVerified = user?.isEmailVerified ?? false;
 
       if (isVerified) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -46,11 +45,11 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color.fromRGBO(29, 29, 29, 1),
       appBar: AppBar(
         title: Text('Verify Email', style: TextStyle(color: Colors.white)),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: Color.fromRGBO(29, 29, 29, 1),
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Center(
@@ -63,9 +62,8 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                final user = FirebaseAuth.instance.currentUser;
-                await user?.sendEmailVerification();
+                onPressed: () async {
+                await AuthService.firebase().sendEmailVerification();
 
                 // Show a SnackBar indicating the email was sent
                 ScaffoldMessenger.of(context).showSnackBar(

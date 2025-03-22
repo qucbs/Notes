@@ -1,6 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:notes/Loginpage.dart';
+import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/routes.dart';
 
 // Definning the menu action
@@ -17,7 +16,7 @@ class _NotesPageState extends State<NotesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color.fromRGBO(29, 29, 29, 1),
       appBar: AppBar(
         actions: [
           PopupMenuButton<MenuAction>(
@@ -26,7 +25,7 @@ class _NotesPageState extends State<NotesPage> {
                 case MenuAction.logout:
                   final shouldLogout = await LogoutDialog(context);
                   if (shouldLogout) {
-                    await FirebaseAuth.instance.signOut();
+                    await AuthService.firebase().logOut();
                     Navigator.of(context).pushNamedAndRemoveUntil(
                       loginRoute,
                       (context) => false,
@@ -45,7 +44,7 @@ class _NotesPageState extends State<NotesPage> {
           ),
         ],
         title: Text('Notes', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black,
+        backgroundColor: Color.fromRGBO(29, 29, 29, 1),
         centerTitle: true,
       ),
     );

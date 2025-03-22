@@ -1,9 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:notes/EmailView.dart';
-import 'package:notes/Firebase/firebase_options.dart';
 import 'package:notes/Loginpage.dart';
+import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/homepage.dart';
 import 'package:notes/Registerpage.dart';
 import 'package:notes/routes.dart';
@@ -41,15 +39,13 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      ),
+      future: AuthService.firebase().initialize(),
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.done:
-            final user = FirebaseAuth.instance.currentUser;
+            final user = AuthService.firebase().currentUser;
             if (user != null) {
-              if (user.emailVerified) {
+              if (user.isEmailVerified) { 
                 return const NotesPage();
               } else {
                 return const VerifyEmailView();
