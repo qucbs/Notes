@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:notes/EmailView.dart';
-import 'package:notes/Loginpage.dart';
+import 'package:notes/Views/EmailView.dart';
+import 'package:notes/Views/Loginpage.dart';
+import 'package:notes/Views/NotesView/NewNotesPage.dart';
 import 'package:notes/Services/Auth/auth_service.dart';
-import 'package:notes/homepage.dart';
-import 'package:notes/Registerpage.dart';
+import 'package:notes/Views/NotesView/NotesPage.dart';
+import 'package:notes/Views/Registerpage.dart';
 import 'package:notes/routes.dart';
 
 void main() {
@@ -27,6 +28,8 @@ class MyApp extends StatelessWidget {
         verifyEmailRoute: (context) => VerifyEmailView(),
         loginRoute: (context) => LoginPage(),
         registerRoute: (context) => RegisterPage(),
+        notesRoute: (context) => NotesPage(),
+        newNotesRoute: (context) =>  NewNotesPage(),
       },
       debugShowCheckedModeBanner: false,
     );

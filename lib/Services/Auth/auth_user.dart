@@ -7,15 +7,16 @@ class AuthUser {
 
   final bool isEmailVerified;
   final String? email;
-   AuthUser({required this.isEmailVerified, this.email});
+  final String? password;
+   const AuthUser({required this.isEmailVerified, this.email, this.password});
 
-  final user = FirebaseAuth.instance.currentUser;
+User? get firebaseUser => FirebaseAuth.instance.currentUser;
   // Create a method for reloading the user
   Future<void> reload() async {
-    await user?.reload();
+    await firebaseUser?.reload();
   }
 
   factory AuthUser.fromFirebase(User user) { // .fromFirebase is a factory constructor
-    return AuthUser(isEmailVerified: user.emailVerified, email: user.email, ); 
+    return AuthUser(isEmailVerified: user.emailVerified, email: user.email,); 
   }
 }

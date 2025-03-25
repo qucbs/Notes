@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:notes/Dialogs/showerrordialog.dart';
 import 'package:notes/Services/Auth/authExceptions.dart';
 import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/routes.dart';
-import 'package:notes/showError.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   late final TextEditingController _email;
   late final TextEditingController _password;
   String? userEmail;
@@ -37,12 +37,12 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         backgroundColor: Color.fromRGBO(29, 29, 29, 1),
         toolbarHeight: 40,
-        title: Text('Login', style: TextStyle(color: Colors.white)),
+        title: Text('Sign Up', style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
       body: Center(
         child: FutureBuilder(
-          future: AuthService.firebase().initialize(),
+            future: AuthService.firebase().initialize(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return Padding(
@@ -80,48 +80,46 @@ class _LoginPageState extends State<LoginPage> {
                     SizedBox(height: 20),
                     TextButton(
                       onPressed: () async {
-                        final email = _email.text;
-                        final password = _password.text;
                         try {
-                          await AuthService.firebase().logIn(
-                            email: email,
-                            password: password,
-                          );
-
-                          final user = AuthService.firebase().currentUser;
-                          if (user?.isEmailVerified ?? false) {
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              homeRoute,
-                              (context) => false,
-                            );
-                          } else {
+                          final email = _email.text;
+                          final password = _password.text;
+                           await AuthService.firebase().createUser(email: email, password: password);
+                          setState(() {
+                            userEmail = AuthService.firebase().user?.email;
+                          });
+                          if (userEmail != null) {
                             Navigator.of(context).pushNamed(verifyEmailRoute);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('You did not provide an email'),
+                              ),
+                            );
                           }
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Successfully logged in as $email'),
-                            ),
-                          );
-                        } on UserNotFoundAuthException {
+                          } on WeakPasswordAuthException {
                           await showErrorDialog(
                             context,
-                            'User not found, maybe you entered a wrong email',
-                          );
-                        } on InvalidCredentialsAuthException {
-                          await showErrorDialog(
-                            context,
-                            'Invalid credentials, please try again',
-                          );
-                        } on GenericAuthException catch (e) {
-                          await showErrorDialog(
-                            context,
-                            'Error: ${e.message}',
-                          );
-                        }
+                              'The password is too weak',
+                            );
+                          } on InvalidEmailAuthException {
+                            await showErrorDialog(
+                              context,
+                              'The email is invalid',
+                            );
+                          } on EmailAlreadyInUseAuthException {
+                            await showErrorDialog(
+                              context,
+                              'The email is already in use',
+                            );
+                          } on GenericAuthException catch (e) {
+                            await showErrorDialog(
+                              context,
+                              'Error: ${e.toString()}',
+                            );
+                          }
                       },
                       child: Text(
-                        'Login',
+                        'Sign Up',
                         style: TextStyle(color: Colors.black),
                       ),
                       style: TextButton.styleFrom(
@@ -134,16 +132,15 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    // text button to redirect users to the register page
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                          registerRoute,
-                          (context) => false,
+                          loginRoute,
+                          (route) => false,
                         );
                       },
                       child: Text(
-                        'Dont have an account?',
+                        'Already have an account?',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
@@ -158,3 +155,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
