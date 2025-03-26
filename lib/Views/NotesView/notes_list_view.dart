@@ -1,25 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:notes/Dialogs/delete_dialog.dart';
+import 'package:notes/Utilities/Dialogs/delete_dialog.dart';
 import 'package:notes/Services/crud/note_services.dart';
 
-typedef DeleteNoteCallback = void Function(DatabaseNote note);
+typedef NoteCallBack = void Function(DatabaseNote note);
 
-class NotesListView extends StatelessWidget {
-  final DeleteNoteCallback onDeleteNote;
+class NotelistView extends StatefulWidget {
+  final NoteCallBack onDeleteNote;
   final List<DatabaseNote> notes;
+  final NoteCallBack onTap;
 
-  const NotesListView({
+  const NotelistView({
     super.key,
     required this.notes,
     required this.onDeleteNote,
+    required this.onTap,
   });
 
   @override
+  State<NotelistView> createState() => _NotelistViewState();
+}
+
+class _NotelistViewState extends State<NotelistView> {
+  @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: notes.length,
+      itemCount: widget.notes.length,
       itemBuilder: (context, index) {
-        final note = notes[index];
+        final note = widget.notes[index];
         return Container(
           alignment: Alignment.centerLeft,
           height: 80.0, // Adjust the height as needed
@@ -43,13 +50,12 @@ class NotesListView extends StatelessWidget {
                 onPressed: () async {
                   final shouldDelete = await showDeleteDialog(context);
                   if (shouldDelete) {
-                    onDeleteNote(note);
+                    widget.onDeleteNote(note);
                   }
                 },
               ),
               onTap: () {
-                // Navigate to edit note screen or perform an action
-                print('Note tapped');
+                widget.onTap(note);
               },
             ),
           ),

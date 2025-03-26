@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/Services/crud/note_services.dart';
+import 'package:notes/Utilities/Generics/get_arguments.dart';
 
-class NewNotesPage extends StatefulWidget {
-  const NewNotesPage({super.key});
+class CreateUpdateNoteView extends StatefulWidget {
+  const CreateUpdateNoteView({super.key});
 
   @override
-  State<NewNotesPage> createState() => _NewNotesPageState();
+  State<CreateUpdateNoteView> createState() => _CreateUpdateNoteViewState();
 }
 
-class _NewNotesPageState extends State<NewNotesPage> {
+class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   DatabaseNote? note;
   late final NoteServices noteService;
   late final TextEditingController _textController;
@@ -29,16 +30,26 @@ class _NewNotesPageState extends State<NewNotesPage> {
     super.dispose();
   }
 
-  Future<DatabaseNote> createNewNote() async {
+  Future<DatabaseNote> createOrGetExistingNote(BuildContext context) async {
+    final widgetNote = context.getArgument<DatabaseNote>();
+
+    if (widgetNote != null) {
+      note = widgetNote;
+      _textController.text = widgetNote.text;
+      return widgetNote;
+    }
+
     final existingNote = note;
     if (existingNote != null) {
       return existingNote;
     }
 
     final currentUser = AuthService.firebase().currentUser!;
-    final email = currentUser.email!;
+    final email = currentUser.email;
     final owner = await noteService.getUser(email: email);
-    return await noteService.createNote(owner: owner);
+    final newNote = await noteService.createNote(owner: owner);
+    note = newNote;
+    return newNote;
   }
 
   void textControllerListener() async {
@@ -80,11 +91,10 @@ class _NewNotesPageState extends State<NewNotesPage> {
         centerTitle: true,
       ),
       body: FutureBuilder(
-        future: createNewNote(),
+        future: createOrGetExistingNote(context),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasData && snapshot.data != null) {
-              note = snapshot.data as DatabaseNote;
               setupTextControllerListener();
               return Column(
                 children: [
@@ -106,7 +116,7 @@ class _NewNotesPageState extends State<NewNotesPage> {
                   ),
                 ],
               );
-            } else { 
+            } else {
               return const Center(
                 child: Text(
                   'Failed to create note. Please try again.',

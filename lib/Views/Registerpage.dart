@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notes/Dialogs/showerrordialog.dart';
+import 'package:notes/Utilities/Dialogs/showerrordialog.dart'; 
 import 'package:notes/Services/Auth/authExceptions.dart';
 import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/routes.dart';

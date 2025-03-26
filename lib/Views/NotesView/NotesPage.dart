@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:notes/Dialogs/logout_dialog.dart';
 import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/Services/crud/note_services.dart';
-import 'package:notes/Views/NotesView/noteslistview.dart';
+import 'package:notes/Utilities/Dialogs/logout_dialog.dart';
+import 'package:notes/Views/NotesView/notes_list_view.dart';
 import 'package:notes/routes.dart';
 
 // Definning the menu action
@@ -17,7 +17,7 @@ class NotesPage extends StatefulWidget {
 
 class _NotesPageState extends State<NotesPage> {
   late final NoteServices noteServices;
-  String get userEmail => AuthService.firebase().currentUser!.email!;
+  String get userEmail => AuthService.firebase().currentUser!.email;
 
   @override
   void initState() {
@@ -33,7 +33,7 @@ class _NotesPageState extends State<NotesPage> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.of(context).pushNamed(newNotesRoute);
+              Navigator.of(context).pushNamed(createorupdatenoteroute);
             },
             icon: const Icon(Icons.add),
           ),
@@ -67,37 +67,52 @@ class _NotesPageState extends State<NotesPage> {
       body: FutureBuilder(
         future: noteServices.getOrCreateUser(email: userEmail),
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
           switch (snapshot.connectionState) {
             case ConnectionState.done:
               return StreamBuilder(
                 stream: noteServices.allNotes,
                 builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
                   switch (snapshot.connectionState) {
                     case ConnectionState.waiting:
                     case ConnectionState.active:
                       if (snapshot.hasData) {
                         final allNotes = snapshot.data as List<DatabaseNote>;
-                        return NotesListView(
+                        return NotelistView(
                           notes: allNotes,
                           onDeleteNote: (note) async {
                             await noteServices.deleteNote(id: note.id);
                           },
+                          onTap: (note) {
+                            Navigator.of(context).pushNamed(
+                              createorupdatenoteroute,
+                              arguments: note,
+                            );
+                          },
                         );
                       } else {
-                        return const CircularProgressIndicator();
+                        return const Center(child: CircularProgressIndicator());
                       }
                     default:
-                      return const CircularProgressIndicator();
+                      return const Center(child: CircularProgressIndicator());
                   }
                 },
               );
             default:
-              return const CircularProgressIndicator();
+              return const Center(child: CircularProgressIndicator());
           }
         },
       ),
     );
   }
 }
-
-

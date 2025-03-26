@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notes/Views/EmailView.dart';
 import 'package:notes/Views/Loginpage.dart';
-import 'package:notes/Views/NotesView/NewNotesPage.dart';
+import 'package:notes/Views/NotesView/create_update_note_view.dart';
 import 'package:notes/Services/Auth/auth_service.dart';
 import 'package:notes/Views/NotesView/NotesPage.dart';
 import 'package:notes/Views/Registerpage.dart';
@@ -22,14 +22,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const LoginPage(),
+      home: const HomePage(),
       routes: {
         homeRoute: (context) => NotesPage(),
         verifyEmailRoute: (context) => VerifyEmailView(),
         loginRoute: (context) => LoginPage(),
         registerRoute: (context) => RegisterPage(),
         notesRoute: (context) => NotesPage(),
-        newNotesRoute: (context) =>  NewNotesPage(),
+        createorupdatenoteroute: (context) => CreateUpdateNoteView(),
       },
       debugShowCheckedModeBanner: false,
     );
@@ -48,7 +48,7 @@ class HomePage extends StatelessWidget {
           case ConnectionState.done:
             final user = AuthService.firebase().currentUser;
             if (user != null) {
-              if (user.isEmailVerified) { 
+              if (user.isEmailVerified) {
                 return const NotesPage();
               } else {
                 return const VerifyEmailView();
@@ -57,9 +57,7 @@ class HomePage extends StatelessWidget {
               return const LoginPage();
             }
           default:
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
         }
       },
     );

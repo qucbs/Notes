@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:notes/extensions/lists/filter.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
@@ -8,6 +9,8 @@ import 'crud_exceptions.dart';
 
 class NoteServices {
   Database? _db;
+
+  DatabaseUser? _user;
 
   List<DatabaseNote> _notes = [];
 
@@ -23,14 +26,32 @@ class NoteServices {
 
   late final StreamController<List<DatabaseNote>> _notesStreamController;
 
-  Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
+  Stream<List<DatabaseNote>> get allNotes =>
+      _notesStreamController.stream.filter((note) {
+        final currentUser = _user;
+        if (currentUser != null) {
+          return note.userId == currentUser.id;
+        } else {
+          print('Error: ------   No current user set'); // Add debug print
+          throw UserDefineBeforeReadAllNotesException();
+        }
+      });
 
-  Future<DatabaseUser> getOrCreateUser({required String email}) async {
+  Future<DatabaseUser> getOrCreateUser({
+    required String email,
+    bool setAsCurrentUser = true,
+  }) async {
     try {
       final user = await getUser(email: email);
+      if (setAsCurrentUser) {
+        _user = user;
+      }
       return user;
     } on UserNotFoundException {
       final createdUser = await createUser(email: email);
+      if (setAsCurrentUser) {
+        _user = createdUser;
+      }
       return createdUser;
     } catch (e) {
       rethrow;
@@ -52,10 +73,12 @@ class NoteServices {
 
     await getNote(id: note.id);
 
-    final updatedCount = await db.update(notesTable, {
-      textColumn: text,
-      isSyncedWithCloudColumn: 0,
-    });
+    final updatedCount = await db.update(
+      notesTable,
+      {textColumn: text, isSyncedWithCloudColumn: 0},
+      where: 'id = ?',
+      whereArgs: [note.id],
+    );
     if (updatedCount == 0) {
       throw CouldNotUpdateNoteException();
     } else {
@@ -263,7 +286,7 @@ class DatabaseUser {
 
   @override
   String toString() {
-    return 'User(id: $id, email: $email)';
+    return 'Person, ID = $id, email = $email';
   }
 
   @override
@@ -328,5 +351,5 @@ const createNoteTable = '''CREATE TABLE IF NOT EXISTS "notes" (
 	"text"	TEXT,
 	"is_synced"	INTEGER NOT NULL DEFAULT '0',
 	PRIMARY KEY("id" AUTOINCREMENT),
-	FOREIGN KEY("user_id") REFERENCES "Users"("id")
+	FOREIGN KEY("user_id") REFERENCES "users"("id")
 );''';
