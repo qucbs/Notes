@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 class AuthUser {
 
   final bool isEmailVerified;
-  final String? email;
-  final String? password;
-   const AuthUser({required this.isEmailVerified, this.email, this.password});
+  final String email;
+  final String id;
+   const AuthUser({required this.isEmailVerified, required this.email, required this.id});
 
 User? get firebaseUser => FirebaseAuth.instance.currentUser;
   // Create a method for reloading the user
@@ -17,6 +17,6 @@ User? get firebaseUser => FirebaseAuth.instance.currentUser;
   }
 
   factory AuthUser.fromFirebase(User user) { // .fromFirebase is a factory constructor
-    return AuthUser(isEmailVerified: user.emailVerified, email: user.email,); 
+    return AuthUser(isEmailVerified: user.emailVerified, email: user.email!, id: user.uid,); 
   }
 }
