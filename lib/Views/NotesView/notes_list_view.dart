@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:notes/Utilities/Dialogs/delete_dialog.dart';
-import 'package:notes/Services/crud/note_services.dart';
+import 'package:notes/Services/cloud/cloud_note.dart';
 
-typedef NoteCallBack = void Function(DatabaseNote note);
+
+typedef NoteCallBack = void Function(CloudNote note);
 
 class NotelistView extends StatefulWidget {
   final NoteCallBack onDeleteNote;
-  final List<DatabaseNote> notes;
+  final Iterable<CloudNote> notes;
   final NoteCallBack onTap;
 
   const NotelistView({
@@ -26,7 +27,7 @@ class _NotelistViewState extends State<NotelistView> {
     return ListView.builder(
       itemCount: widget.notes.length,
       itemBuilder: (context, index) {
-        final note = widget.notes[index];
+        final note = widget.notes.elementAt(index);
         return Container(
           alignment: Alignment.centerLeft,
           height: 80.0, // Adjust the height as needed

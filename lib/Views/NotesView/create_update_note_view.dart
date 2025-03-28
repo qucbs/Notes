@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:notes/Services/Auth/auth_service.dart';
-import 'package:notes/Services/crud/note_services.dart';
+import 'package:notes/Services/cloud/cloud_note.dart';
+import 'package:notes/Utilities/Dialogs/cannot_share_empty_note_dialog.dart';
 import 'package:notes/Utilities/Generics/get_arguments.dart';
+import 'package:notes/services/cloud/firebase_cloud_storage.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
@@ -11,121 +14,134 @@ class CreateUpdateNoteView extends StatefulWidget {
 }
 
 class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
-  DatabaseNote? note;
-  late final NoteServices noteService;
+  CloudNote? _note;
+  late final FirebaseCloudStorage _notesService;
   late final TextEditingController _textController;
 
   @override
   void initState() {
-    noteService = NoteServices();
+    _notesService = FirebaseCloudStorage();
     _textController = TextEditingController();
+    _setupTextControllerListener();
     super.initState();
   }
 
-  @override
-  void dispose() {
-    deleteNoteIfTextIsEmpty();
-    saveNoteIfTextIsNotEmpty();
-    _textController.dispose();
-    super.dispose();
+  void _textControllerListener() async {
+    final note = _note;
+    if (note == null) {
+      return;
+    }
+
+    final text = _textController.text;
+    await _notesService.updateNote(documentId: note.documentId, text: text);
   }
 
-  Future<DatabaseNote> createOrGetExistingNote(BuildContext context) async {
-    final widgetNote = context.getArgument<DatabaseNote>();
+  void _setupTextControllerListener() {
+    _textController.removeListener(_textControllerListener);
+    _textController.addListener(_textControllerListener);
+  }
+
+  Future<CloudNote> createOrGetExistingNote(BuildContext context) async {
+    final widgetNote = context.getArgument<CloudNote>();
 
     if (widgetNote != null) {
-      note = widgetNote;
+      _note = widgetNote;
       _textController.text = widgetNote.text;
       return widgetNote;
     }
 
-    final existingNote = note;
-    if (existingNote != null) {
-      return existingNote;
-    }
+    final existingNote = _note;
+    if (existingNote != null) return existingNote;
 
     final currentUser = AuthService.firebase().currentUser!;
-    final email = currentUser.email;
-    final owner = await noteService.getUser(email: email);
-    final newNote = await noteService.createNote(owner: owner);
-    note = newNote;
+    final userId = currentUser.id;
+    final newNote = await _notesService.createNewNote(ownerUserId: userId);
+    _note = newNote;
     return newNote;
   }
 
-  void textControllerListener() async {
-    final note = this.note;
-    if (note == null) {
-      return;
+  void deleteNoteIfEmpty() async {
+    final note = _note;
+    if (note != null && _textController.text.isEmpty) {
+      await _notesService.deleteNote(documentId: note.documentId);
     }
+  }
+
+  void saveNoteIfnotEmpty() async {
+    final note = _note;
     final text = _textController.text;
-    await noteService.updateNote(note: note, text: text);
-  }
-
-  void setupTextControllerListener() {
-    _textController.removeListener(textControllerListener);
-    _textController.addListener(textControllerListener);
-  }
-
-  void deleteNoteIfTextIsEmpty() {
-    final _note = note;
-    if (_textController.text.isEmpty && _note != null) {
-      noteService.deleteNote(id: _note.id);
+    if (note != null && _textController.text.isNotEmpty) {
+      await _notesService.updateNote(documentId: note.documentId, text: text);
     }
   }
 
-  void saveNoteIfTextIsNotEmpty() async {
-    final note = this.note;
-    if (_textController.text.isNotEmpty && note != null) {
-      await noteService.updateNote(note: note, text: _textController.text);
-    }
+  @override
+  void dispose() {
+    deleteNoteIfEmpty();
+    saveNoteIfnotEmpty();
+    _textController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(29, 29, 29, 1),
+      backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: const Color.fromRGBO(29, 29, 29, 1),
-        title: const Text('New Notes', style: TextStyle(color: Colors.white)),
+        title: const Text('New Note', style: TextStyle(color: Colors.white)),
         centerTitle: true,
+        backgroundColor: Colors.grey[900],
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              // Ensure note exists before sharing
+              if (_note == null) {
+                await cannotShareEmptyNoteDialog(context);
+                return;
+              }
+
+              // Ensure text is not empty before sharing
+              if (_textController.text.isNotEmpty) {
+                await Share.share(_textController.text);
+              } else {
+                await cannotShareEmptyNoteDialog(context);
+              }
+            },
+            icon: const Icon(Icons.share),
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: createOrGetExistingNote(context),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.hasData && snapshot.data != null) {
-              setupTextControllerListener();
-              return Column(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              _setupTextControllerListener();
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Expanded(
                       child: TextField(
+                        style: TextStyle(color: Colors.white),
                         controller: _textController,
-                        style: const TextStyle(color: Colors.white),
                         keyboardType: TextInputType.multiline,
                         maxLines: null,
+                        expands:
+                            true, // Makes the TextField take full available space
                         decoration: const InputDecoration(
-                          hintText: 'Start typing your note here...',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          border: InputBorder.none,
+                          hintText: 'Start typing your note...',
+                          hintStyle: TextStyle(color: Colors.white70),
+                          border: InputBorder.none, // Removes default border
                         ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            } else {
-              return const Center(
-                child: Text(
-                  'Failed to create note. Please try again.',
-                  style: TextStyle(color: Colors.white),
+                  ],
                 ),
               );
-            }
-          } else {
-            return const Center(child: CircularProgressIndicator());
+            default:
+              return const Center(child: CircularProgressIndicator());
           }
         },
       ),
