@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:notes/Services/Auth/auth_service.dart';
+import 'package:notes/Services/Auth/bloc/auth_bloc.dart';
+import 'package:notes/Services/Auth/bloc/auth_events.dart';
 import 'package:notes/routes.dart';
 
 class VerifyEmailView extends StatefulWidget {
@@ -63,7 +66,9 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
             SizedBox(height: 20),
             ElevatedButton(
                 onPressed: () async {
-                await AuthService.firebase().sendEmailVerification();
+                  context.read<AuthBloc>().add(
+                    const AuthEventSendEmailVerification(),
+                  );
 
                 // Show a SnackBar indicating the email was sent
                 ScaffoldMessenger.of(context).showSnackBar(

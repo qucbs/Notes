@@ -4,7 +4,7 @@ import 'package:notes/Utilities/Dialogs/generic_dialog.dart';
 Future<void> showErrorDialog(BuildContext context, String text) {
   return showGenericDialog(
     context: context,
-    title: 'An error occurred',
+    title: 'Error',
     content: text,
     optionsBuilder: () {
       return {'Ok': null};

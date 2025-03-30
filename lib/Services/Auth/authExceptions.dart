@@ -6,6 +6,11 @@ class InvalidEmailAuthException implements Exception {}
 class GenericAuthException implements Exception {
   final String message;
   GenericAuthException(this.message);
+
+  @override
+  String toString() {
+    return message;
+  }
 }
 class UserNotLoggedInAuthException implements Exception {}
 
