@@ -56,42 +56,44 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Please Verify Your Email Address:',
-              style: TextStyle(color: Colors.white, fontSize: 19),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-                onPressed: () async {
-                  context.read<AuthBloc>().add(
-                    const AuthEventSendEmailVerification(),
-                  );
-
-                // Show a SnackBar indicating the email was sent
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Verification email sent! Please check your inbox.',
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Please Verify Your Email Address:',
+                style: TextStyle(color: Colors.white, fontSize: 19),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                  onPressed: () async {
+                    context.read<AuthBloc>().add(
+                      const AuthEventSendEmailVerification(),
+                    );
+          
+                  // Show a SnackBar indicating the email was sent
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Verification email sent! Please check your inbox.',
+                      ),
                     ),
+                  );
+          
+                  // Call the check method
+                  await _checkEmailVerified();
+                },
+          
+                child: Padding(
+                  padding: const EdgeInsets.all(14.0),
+                  child: Text(
+                    'Send Verification Email',
+                    style: TextStyle(color: Colors.black, fontSize: 18),
                   ),
-                );
-
-                // Call the check method
-                await _checkEmailVerified();
-              },
-
-              child: Padding(
-                padding: const EdgeInsets.all(14.0),
-                child: Text(
-                  'Send Verification Email',
-                  style: TextStyle(color: Colors.black, fontSize: 18),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

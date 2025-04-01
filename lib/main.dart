@@ -9,11 +9,20 @@ import 'package:notes/Views/Loginpage.dart';
 import 'package:notes/Views/NotesView/create_update_note_view.dart';
 import 'package:notes/Views/NotesView/NotesPage.dart';
 import 'package:notes/Views/Registerpage.dart';
+import 'package:notes/Views/forgot_passoword_view.dart';
+import 'package:notes/helpers/loading/loading_screen.dart';
 import 'package:notes/routes.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(
+    BlocProvider<AuthBloc>(
+      create: (context) => AuthBloc(FirebaseAuthProvider()),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -22,6 +31,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -45,7 +56,14 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(const AuthEventInitialize());
-    return BlocBuilder<AuthBloc, AuthState>(
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state.isLoading) {
+          LoadingScreen().show(context: context, text: state.loadingText ?? "Please wait a moment...");
+        } else {
+          LoadingScreen().hide();
+        }
+      },
       builder: (context, state) {
         if (state is AuthStateLoggedOut) {
           return const LoginPage();
@@ -53,6 +71,8 @@ class HomePage extends StatelessWidget {
           return const NotesPage();
         } else if (state is AuthStateVerificationRequired) {
           return const VerifyEmailView();
+        } else if (state is AuthStateForgotPassword) {
+          return const ForgotPassowordView();
         } else if (state is AuthStateRegistering) {
           return const RegisterPage();
         } else {

@@ -46,7 +46,9 @@ class _NotesPageState extends State<NotesPage> {
                 case MenuAction.logout:
                   final shouldLogout = await showLogoutDialog(context);
                   if (shouldLogout) {
-                    context.read<AuthBloc>().add(const AuthEventLogOut());
+                    if (context.mounted) {
+                      context.read<AuthBloc>().add(const AuthEventLogOut());
+                    }
                   }
               }
             },
@@ -54,7 +56,7 @@ class _NotesPageState extends State<NotesPage> {
               return [
                 const PopupMenuItem<MenuAction>(
                   value: MenuAction.logout,
-                  child: Text('Logout'),
+                  child: Text('Log out'),
                 ),
               ];
             },

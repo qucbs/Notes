@@ -77,6 +77,7 @@ void main() {
       expect(user!.isEmailVerified, true);
     });
 
+
     test(
       '10. Logged in user should be able to log out and log in again',
       () async {
@@ -98,6 +99,13 @@ void main() {
         expect(provider.currentUser, loggedInUser);
       },
     );
+    test('11. Should be able to send password reset link', () async {
+      await provider.initialize();
+      await provider.createUser(
+        email: 'test@test.com',
+        password: 'password123',
+      );
+    });
   });
 }
 
@@ -156,6 +164,15 @@ class MockAuthProvider implements AuthProvider {
 
   @override
   Future<void> sendEmailVerification() async {
+    if (!_isInitialized) throw NotInitializedException();
+    final user = _user;
+    if (user == null) throw UserNotFoundAuthException();
+    final newUser = AuthUser(isEmailVerified: true, email: user.email, id: '123');
+    _user = newUser;
+  }
+  
+  @override
+  Future<void> sendPasswordReset({required String email}) async {
     if (!_isInitialized) throw NotInitializedException();
     final user = _user;
     if (user == null) throw UserNotFoundAuthException();

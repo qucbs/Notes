@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:notes/Services/Auth/bloc/auth_bloc.dart';
 import 'package:notes/Services/Auth/bloc/auth_events.dart';
 import 'package:notes/Services/Auth/bloc/auth_state.dart';
-import 'package:notes/Utilities/Dialogs/loading_dialog.dart';
 import 'package:notes/Utilities/Dialogs/showerrordialog.dart';
 import 'package:notes/Services/Auth/authExceptions.dart';
 import 'package:notes/Services/Auth/auth_service.dart';
@@ -18,7 +17,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   late final TextEditingController _email;
   late final TextEditingController _password;
-  CloseDialog? _closeDialog;
   String? userEmail;
 
   @override
@@ -40,13 +38,6 @@ class _LoginPageState extends State<LoginPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
         if (state is AuthStateLoggedOut) {
-          final closeDialog = _closeDialog;
-          if (!state.isloading && closeDialog != null) {
-            closeDialog();
-            _closeDialog = null;
-          } else if (state.isloading && _closeDialog == null) {
-            _closeDialog = showloadingDialog(context: context, text: 'Loading...');
-          }
           if (state.exception is UserNotFoundAuthException) {
             await showErrorDialog(
               context,
@@ -80,10 +71,11 @@ class _LoginPageState extends State<LoginPage> {
               if (snapshot.connectionState == ConnectionState.done) {
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextField(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextField(
                         keyboardType: TextInputType.emailAddress,
                         autocorrect: false,
                         enableSuggestions: false,
@@ -145,7 +137,20 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
+                      SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () {
+                          context.read<AuthBloc>().add(
+                            const AuthEventForgotPassword(),
+                          );
+                        },
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
                     ],
+                    ),
                   ),
                 );
               }

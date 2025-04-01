@@ -67,72 +67,74 @@ class _RegisterPageState extends State<RegisterPage> {
               if (snapshot.connectionState == ConnectionState.done) {
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextField(
-                        keyboardType: TextInputType.emailAddress,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        style: TextStyle(color: Colors.white),
-                        controller: _email,
-                        decoration: InputDecoration(
-                          hintText: ' Enter Your Email',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      TextField(
-                        style: TextStyle(color: Colors.white),
-                        obscureText: true,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        controller: _password,
-                        decoration: InputDecoration(
-                          hintText: ' Enter Your Password',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      TextButton(
-                        onPressed: () async {
-                          final email = _email.text;
-                          final password = _password.text;
-                          context.read<AuthBloc>().add(
-                            AuthEventRegister(email, password),
-                          );
-                        },
-
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: EdgeInsets.all(10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          'Sign Up',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      TextButton(
-                        onPressed: () {
-                          context.read<AuthBloc>().add(
-                            const AuthEventLogOut(),
-                          );
-                        },
-                        child: Text(
-                          'Already have an account?',
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextField(
+                          keyboardType: TextInputType.emailAddress,
+                          autocorrect: false,
+                          enableSuggestions: false,
                           style: TextStyle(color: Colors.white),
+                          controller: _email,
+                          decoration: InputDecoration(
+                            hintText: ' Enter Your Email',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        SizedBox(height: 20),
+                        TextField(
+                          style: TextStyle(color: Colors.white),
+                          obscureText: true,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          controller: _password,
+                          decoration: InputDecoration(
+                            hintText: ' Enter Your Password',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        TextButton(
+                          onPressed: () async {
+                            final email = _email.text;
+                            final password = _password.text;
+                            context.read<AuthBloc>().add(
+                              AuthEventRegister(email, password),
+                            );
+                          },
+                    
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                            padding: EdgeInsets.all(10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Sign Up',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        TextButton(
+                          onPressed: () {
+                            context.read<AuthBloc>().add(
+                              const AuthEventLogOut(),
+                            );
+                          },
+                          child: Text(
+                            'Already have an account?',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }
